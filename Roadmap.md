@@ -40,7 +40,7 @@
 
 ## Schemas (Models Dir)
 - **Tasks** (`Task.js`):
-  - Fields: `taskId` (ObjectId, unique), `title` (string), `xpReward` (number >0), `maxCompletions` (number, 0=unlimited), `groups` (array of strings, e.g., ["global", "bronze", "dedicated"]), `playersBypass` (array of ObjectIds), `category` (string, e.g., "daily", "tournament"), `tournamentId` (ObjectId, optional), `startTime` (Date, optional), `endTime` (Date, optional).
+  - Fields: `taskId` (ObjectId, unique), `title` (string), `xpReward` (number >0), `maxCompletions` (number, 0=unlimited), `cooldown` (time, cooldown between completions), `groups` (array of strings, e.g., ["global", "bronze", "dedicated"]), `playersBypass` (array of ObjectIds), `category` (string, e.g., "daily", "tournament"), `tournamentId` (ObjectId, optional), `startTime` (Date, optional), `endTime` (Date, optional).
   - Indexes: `taskId`, `groups`, `playersBypass`, `tournamentId`, `category`, `startTime`, `endTime`.
 - **Players** (`Player.js`):
   - Fields: `playerId` (ObjectId, unique), `username` (string, unique), `email` (string, unique), `password` (hashed), `verified` (boolean, default false), `role` (enum: "user", "admin", "moderator"), `rank` (string, e.g., "bronze"), `totalXp` (number), `groups` (array, e.g., ["dedicated", "tournament_123"]), `lastUpdated` (Date).
@@ -118,6 +118,30 @@
   - Monitor: PM2, Prometheus, logs.
 
 ## Algorithms
+
+### 🔄 Additional Algorithms
+
+- **Leaderboard Ranking (Dynamic Updates)**:
+  - Input: playerId, newXp.
+  - Update leaderboard efficiently using binary search insertion in sorted XP list.
+  - Store in Redis for quick access; emit Socket.io `leaderboardUpdate`.
+
+- **Rate Limit (Sliding Window Counter)**:
+  - Use Redis to track request timestamps per IP/playerId.
+  - Allow if requests in last X minutes < limit; otherwise block.
+
+- **Cache Invalidation**:
+  - On update (task/tournament/leaderboard), delete Redis keys.
+  - Regenerate cache on next request.
+
+- **Anomaly Detection (Anti-Cheat)**:
+  - Track XP earned/hour; if above 5× top 10% average → flag suspicious.
+  - Log to `AuditLogs` and notify admins.
+
+- **Email Queue Processing**:
+  - Push email jobs (verification, rank-up, reset) into queue (RabbitMQ/Redis).
+  - Worker consumes jobs, retries on failure (max 3 attempts).
+
 - **Task Eligibility**:
   - Input: playerId, player.rank, player.groups, player.verified.
   - Check: verified=true.
@@ -309,10 +333,58 @@ Extend the Real-time Leaderboard backend to implement a task/XP system with a to
 ---
 
 ### Deployment
+
+### 🛠 DevOps Steps
+- **CI/CD Pipeline**:
+  - Run ESLint, Prettier, Jest unit tests, and integration tests on each commit.
+  - Security scanning with `npm audit`, `snyk`, or `trivy`.
+  - Build Docker images and push to registry (GitHub Container Registry/DockerHub).
+  - Deploy automatically via GitHub Actions → staging → production.
+
+- **Infrastructure as Code (IaC)**:
+  - Terraform/Ansible to provision MongoDB Atlas, Redis, and compute resources.
+  - Optional: Kubernetes for scaling, auto-healing, and blue-green deployments.
+
+- **Monitoring & Logging**:
+  - PM2 for process management, Winston for logging.
+  - Prometheus + Grafana dashboards for performance metrics.
+  - Alerts via Slack/Discord for downtime, high error rates, or anomalies.
+
+- **Backup & Recovery**:
+  - Daily MongoDB Atlas snapshots or `mongodump` backups.
+  - Redis persistence with RDB/AOF enabled.
+  - Documented recovery steps for disaster scenarios.
+
+- **Security in DevOps**:
+  - Manage secrets in Vault or GitHub Secrets (JWT, DB, SMTP).
+  - Principle of least privilege for DB users and infrastructure roles.
+  - Immutable container images with no manual edits in production.
+
 - Add a **staging environment** (pre-production) for testing features before live deployment.  
 - Set up **alerts and notifications**: Slack/Discord integration for errors, performance issues, and downtime alerts.  
 
 ---
+
+
+
+### 🔒 Additional Security Enhancements
+- **Security Headers**: Use `helmet` middleware to enforce HTTP security headers like `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, and `Strict-Transport-Security`.
+- **JWT Refresh Tokens**: Implement refresh tokens with rotation for long-lived sessions. Store refresh tokens securely (e.g., Redis) and invalidate them on logout/compromise.
+- **RBAC Enforcement**: Expand role-based access control by explicitly checking roles in controllers (e.g., only admins can delete tournaments or update ranks).
+- **Audit Logging**: Extend `AuditLogs` to include role-based admin/mod actions such as task deletions, tournament updates, and mass rank changes for transparency.
+
+### ⚡ Additional Performance Improvements
+- **Redis Eviction Policy**: Use LRU (Least Recently Used) with TTLs for leaderboard and task list caching to prevent memory bloat.
+- **Cache Invalidation**: Define clear cache invalidation strategies when tasks, leaderboards, or tournaments are updated.
+
+### 🧪 Additional Testing Enhancements
+- **End-to-End Testing**: Add E2E tests (using Supertest, Playwright, or Cypress) to simulate full player flows (register → verify → join tournament → complete task → view leaderboard).
+
+### 🚀 Deployment Enhancements
+- **Staging Environment**: Create a staging (pre-production) environment to test features before going live.
+- **Monitoring & Alerts**: Integrate Slack/Discord alerts for system errors, downtime, or suspicious activity using Winston + monitoring tools.
+- **Strict HTTPS Enforcement**: Configure Nginx to include `Strict-Transport-Security` headers and redirect all HTTP traffic to HTTPS.
+
 
 ## Final Notes
 With these enhancements, the roadmap becomes production-grade and highly maintainable. The additions ensure scalability, stronger security, real-time monitoring, and improved collaboration across teams.

@@ -6,8 +6,8 @@ import catchAsync from '../Utils/catchAsync.js';
 
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: "Gmail",
-    host: "smtp.gmail.com",
+    service: 'Gmail',
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
@@ -22,49 +22,82 @@ const generateVerificationCode = () => {
 };
 
 const sendMail = async (transporter, mailOptions) => {
-  await transporter.sendMail(mailOptions);
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    throw new HandleError('Failed to send email. Please try again later.', 500);
+  }
 };
 
-export const sendEmailCode = catchAsync(async (email, next) => {
+export const sendEmailCode = catchAsync(async (email, options = {}) => {
+  const { playerId, purpose, content } = options;
   const generatedCode = generateVerificationCode();
-  await EmailVerification.create({ email, code: generatedCode });
+  await EmailVerification.create({ email, code: generatedCode, expiresAt: new Date(Date.now() + 5 * 60 * 1000) }); // 5-minute expiry
 
+  const transporter = createTransporter();
+  let subject, text;
+  switch (purpose) {
+    case 'verify':
+      subject = 'Verify Your Email 🚀';
+      text = `Welcome! Your verification code is ${generatedCode}. It expires in 5 minutes.`;
+      break;
+    case 'reset':
+      subject = 'Password Reset Request 📧';
+      text = `Your password reset code is ${generatedCode}. It expires in 5 minutes.`;
+      break;
+    case 'rank':
+      subject = 'Rank Up! 🎉';
+      text = content || `Congratulations! You've advanced to a new rank.`;
+      break;
+    case 'tournament':
+      subject = 'Tournament Update 🏆';
+      text = content || `A new tournament is starting! Check your tasks.`;
+      break;
+    case 'alert':
+      subject = 'Admin Alert ⚠️';
+      text = content || `An anomaly has been detected.`;
+      break;
+    default:
+      subject = 'Custom Email 📩';
+      text = content || `This is a custom email.`;
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject,
+    text,
+    ...(playerId && { headers: { 'X-Player-Id': playerId } }), // Optional tracking
+  };
+
+  await sendMail(transporter, mailOptions);
+  return { status: 'SUCCESS', totalCount: 1, message: 'Email sent successfully.' };
+});
+
+export const verifyEmailCode = catchAsync(async (email, code, purpose = 'verify') => {
+  const emailVerificationCheck = await EmailVerification.findOne({
+    email,
+    code,
+    expiresAt: { $gt: new Date() },
+  });
+
+  if (!emailVerificationCheck) {
+    return { status: 'FAILED', totalCount: 0, message: 'Verification code is incorrect or expired.' };
+  }
+
+  await EmailVerification.deleteMany({ email });
+  return { status: 'SUCCESS', totalCount: 1, message: 'Email authorized successfully.' };
+});
+
+export const sendCustomEmail = catchAsync(async (email, subject, content) => {
   const transporter = createTransporter();
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: '👋 Hello from Node.js 🚀',
-    text: `This is a test email sent from Node.js using nodemailer. 📧💻 Your email is ${email}, and your code is ${generatedCode}. It expires in 5 minutes.`,
+    subject: subject || 'Custom Email 📩',
+    text: content || 'This is a custom email.',
   };
 
-  try {
-    await sendMail(transporter, mailOptions);
-  } catch (error) {
-    return next(new HandleError('Could not send the email. Please try again later.', 500));
-  }
-
-  return {
-    success: true,
-    message: 'Email sent successfully.',
-  };
-});
-
-export const verifyEmailCode = catchAsync(async (email, code) => {
-  const emailVerificationCheck = await EmailVerification.findOne({
-    email,
-    code,
-  });
-
-  if (!emailVerificationCheck) {
-    return {
-      authorized: false,
-      message: 'Verification code is incorrect or expired.',
-    };
-  } else {
-    await EmailVerification.deleteMany({ email });
-    return {
-      authorized: true,
-      message: 'Email authorized successfully.',
-    };
-  }
+  await sendMail(transporter, mailOptions);
+  return { status: 'SUCCESS', totalCount: 1, message: 'Custom email sent successfully.' };
 });

@@ -5,11 +5,11 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet'
-import catchError from './Utils/catchError.js';
-import HandleError from './Utils/handleError.js';
+import catchError from './Utilities/catchError.js';
+import HandleError from './Utilities/handleError.js';
 
 ///* custom imports *\\\
-import authRouter from './Routes/auth.js';
+// import authRouter from './Routes/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
@@ -33,13 +33,13 @@ app.use(
 );
 
 ///* custom app uses *\\\
-app.use('/api/auth', authRouter);
+// app.use('/api/auth', authRouter);
 
 
 //* test health/alive *\\
 app.get('/api/health', (req, res) => res.json({ status: 'OK' }));
 
-app.use('*', (req, res, next) => {
+app.use(/(.*)/, (req, res, next) => {
 	return next(new HandleError('Invalid route', 404));
 });
 

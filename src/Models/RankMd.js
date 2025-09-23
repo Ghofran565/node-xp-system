@@ -21,7 +21,7 @@ const rankSchema = new mongoose.Schema(
       min: [0, 'Minimum XP cannot be negative.'],
     },
     xpBooster: {
-      type: Float16Array,
+      type: Number,
       required: [true, 'XP booster is required.'],
       min: [1.0, 'XP booster must be at least 1.'],
     },

@@ -1,20 +1,30 @@
+// Utils/notifier.js
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import EmailVerification from '../Models/emailVerificationMd.js';
 import HandleError from './handleError.js';
-import catchAsync from '../Utils/catchAsync.js';
+import catchAsync from './catchAsync.js';
+import { logger } from './logger.js';
 
 const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'Gmail',
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new HandleError('Email credentials not configured in .env', 500);
+  }
+  try {
+    return nodemailer.createTransport({
+      service: 'Gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to create email transporter:', error);
+    throw new HandleError('Failed to initialize email service', 500);
+  }
 };
 
 const generateVerificationCode = () => {
@@ -24,7 +34,9 @@ const generateVerificationCode = () => {
 const sendMail = async (transporter, mailOptions) => {
   try {
     await transporter.sendMail(mailOptions);
+    logger.info(`Email sent to ${mailOptions.to} for purpose: ${mailOptions.subject}`);
   } catch (error) {
+    logger.error(`Failed to send email to ${mailOptions.to}:`, error);
     throw new HandleError('Failed to send email. Please try again later.', 500);
   }
 };
@@ -75,17 +87,16 @@ export const sendEmailCode = catchAsync(async (email, options = {}) => {
 });
 
 export const verifyEmailCode = catchAsync(async (email, code, purpose = 'verify') => {
-  const emailVerificationCheck = await EmailVerification.findOne({
+  const emailVerificationCheck = await EmailVerification.findOneAndDelete({
     email,
     code,
     expiresAt: { $gt: new Date() },
-  });
+  }).lean(); // Use findOneAndDelete to remove on success
 
   if (!emailVerificationCheck) {
     return { status: 'FAILED', totalCount: 0, message: 'Verification code is incorrect or expired.' };
   }
 
-  await EmailVerification.deleteMany({ email });
   return { status: 'SUCCESS', totalCount: 1, message: 'Email authorized successfully.' };
 });
 

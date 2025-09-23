@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import catchAsync from '../Utils/catchAsync.js';
 import HandleError from '../Utils/handleError.js';
 import { sendEmailCode } from '../Utils/notifier.js';
-import Player from '../Models/Player.js';
+import Player from '../Models/PlayerMd.js';
 import ApiFeatures from '../Utils/apiFeatures.js';
 
 // Validation regex

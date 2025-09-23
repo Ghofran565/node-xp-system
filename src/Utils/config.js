@@ -7,7 +7,7 @@ config({ path: path.resolve(process.cwd(), 'config.env') });
 
 // Security configuration for API features
 export const securityConfig = {
-  // Fields that should be excluded from query results for all roles
+  cache: { ttl: 600 },
   forbiddenFields: [
     'password',          // Sensitive user data
     'email',             // Sensitive user data
@@ -46,30 +46,30 @@ export const securityConfig = {
   },
 
   // Email configuration for notifications
-//   email: {
-//     adminEmail: process.env.ADMIN_EMAIL || 'admin@example.com', // Default admin email
-//     allPlayersEmail: process.env.ALL_PLAYERS_EMAIL || '',      // Broadcast email (optional)
-//   },
+  //   email: {
+  //     adminEmail: process.env.ADMIN_EMAIL || 'admin@example.com', // Default admin email
+  //     allPlayersEmail: process.env.ALL_PLAYERS_EMAIL || '',      // Broadcast email (optional)
+  //   },
 
   // API rate limiting (optional, can be expanded with a library like express-rate-limit)
-//   rateLimit: {
-//     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute
-//     max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),              // 100 requests
-//   },
-// };
+  //   rateLimit: {
+  //     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute
+  //     max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),              // 100 requests
+  //   },
+  // };
 
-// // Export additional utility configurations
-// export const appConfig = {
-//   port: parseInt(process.env.PORT || '3000', 10), // Default port
-//   env: process.env.NODE_ENV || 'development',     // Environment mode
-//   baseUrl: process.env.BASE_URL || 'http://localhost:3000', // Base URL for links
-// };
+  // // Export additional utility configurations
+  // export const appConfig = {
+  //   port: parseInt(process.env.PORT || '3000', 10), // Default port
+  //   env: process.env.NODE_ENV || 'development',     // Environment mode
+  //   baseUrl: process.env.BASE_URL || 'http://localhost:3000', // Base URL for links
+  // };
 
-// Validate environment variables
-// const requiredEnvVars = ['ADMIN_EMAIL'];
-// requiredEnvVars.forEach((varName) => {
-//   if (!process.env[varName]) {
-//     console.warn(`Warning: ${varName} is not set in .env. Using default value.`);
-//   }
-//});
+  // Validate environment variables
+  // const requiredEnvVars = ['ADMIN_EMAIL'];
+  // requiredEnvVars.forEach((varName) => {
+  //   if (!process.env[varName]) {
+  //     console.warn(`Warning: ${varName} is not set in .env. Using default value.`);
+  //   }
+  //});
 };

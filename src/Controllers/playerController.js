@@ -1,14 +1,16 @@
+// controllers/playerController.js
 import mongoose from 'mongoose';
 import catchAsync from '../Utils/catchAsync.js';
 import HandleError from '../Utils/handleError.js';
-import Player from '../Models/Player.js';
-import PlayerTaskProgress from '../Models/PlayerTaskProgress.js';
-import Rank from '../Models/Rank.js';
-import AuditLog from '../Models/AuditLog.js';
-import { cache } from '../Utils/cache.js';
+import Player from '../Models/playerMd.js';
+import PlayerTaskProgress from '../Models/PlayerTaskProgressMd.js';
+import Rank from '../Models/RankMd.js';
+import AuditLog from '../Models/AuditLogMd.js';
+import { cache } from '../utils/cache.js';
 import { sendEmailCode, sendCustomEmail } from '../Utils/notifier.js';
 import { logger } from '../Utils/logger.js';
 import ApiFeatures from '../Utils/apiFeatures.js';
+import { io } from '../app.js';
 
 // Cache TTL for rank data (1 hour in seconds)
 const CACHE_TTL = 3600;
@@ -36,6 +38,9 @@ const updateRank = async (playerId) => {
       timestamp: new Date(),
     });
     logger.info(`Rank updated for player ${playerId} to ${currentRank.rankName}`);
+
+    // Emit rank update
+    io.emit('rankUpdate', { playerId, rankName: currentRank.rankName, totalXp: player.totalXp });
 
     await cache.del(`player:rank:${playerId}`);
     await cache.del(`leaderboard:xp`);
@@ -69,7 +74,16 @@ export const getPlayerProgress = catchAsync(async (req, res, next) => {
     const totalCompletions = progress.reduce((sum, p) => sum + (p.completions || 0), 0);
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const historicalProgress = progress.filter(p => p.lastCompleted > thirtyDaysAgo);
-    const xpEarnedLast30Days = historicalProgress.reduce((sum, p) => sum + (p.completions * (await Task.findById(p.taskId).then(t => t?.xpReward || 0) || 0)), 0);
+    const taskIds = historicalProgress.map(p => p.taskId);
+    const tasks = await import('../Models/Task.js').then(mod => mod.default || mod.Task || mod); // dynamic import to avoid missing import
+    const taskDocs = await tasks.find({ _id: { $in: taskIds } }).lean();
+    const taskXpMap = {};
+    taskDocs.forEach(t => { taskXpMap[t._id.toString()] = t.xpReward || 0; });
+
+    const xpEarnedLast30Days = historicalProgress.reduce((sum, p) => {
+      const xpReward = taskXpMap[p.taskId?.toString()] || 0;
+      return sum + (p.completions * xpReward);
+    }, 0);
 
     const data = {
       username: player.username,
@@ -118,7 +132,7 @@ export const getPlayerRank = catchAsync(async (req, res, next) => {
     lastUpdated: player.lastUpdated,
   };
 
-  await cache.set(cacheKey, JSON.stringify(data), CACHE_TTL);
+  await cache.set(cacheKey, JSON.stringify(data), CACHE_TTL, { async: true });
   res.status(200).json({ status: 'SUCCESS', totalCount: 1, data });
 });
 
@@ -181,9 +195,35 @@ export const updatePlayer = catchAsync(async (req, res, next) => {
   });
   logger.info(`Player ${playerId} updated by ${user.playerId}`);
 
-  await cache.del(`player:rank:${playerId}`);
-  await cache.del(`leaderboard:xp`);
+  await cache.del(`player:rank:${playerId}`, { async: true });
+  // Invalidate leaderboard:xp only if XP changed significantly (e.g., >10%)
+  if (totalXp !== undefined && Math.abs(totalXp - player.totalXp) > player.totalXp * 0.1) {
+    await cache.del(`leaderboard:xp`, { async: true });
+  }
   await sendCustomEmail(updatedPlayer.email, 'Profile Updated', 'There was an update in your account.');
+
+  // Emit leaderboard and rank updates
+  const updatedLeaderboard = await getUpdatedLeaderboard();
+  io.emit('leaderboardUpdate', updatedLeaderboard);
+  io.emit('rankUpdate', { playerId, rankName: (await Rank.findById(updatedPlayer.rank).lean()).rankName, totalXp: updatedPlayer.totalXp });
 
   res.status(200).json({ status: 'SUCCESS', totalCount: 1, data: updatedPlayer });
 });
+
+// Export for use in app.js
+export async function getUpdatedLeaderboard() {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const features = new ApiFeatures(Player, {}, 'guest')
+    .sort({ totalXp: -1 })
+    .limitFields()
+    .addManualFilters({ lastUpdated: { $gte: thirtyDaysAgo } })
+    .populate('rank', 'rankName')
+    .execute({ allowDiskUse: true });
+  const { data } = await features;
+  return data.map(player => ({
+    username: player.username,
+    totalXp: player.totalXp,
+    rank: player.rank?.rankName || 'Unranked',
+    lastUpdated: player.lastUpdated,
+  })).slice(0, 20);
+}

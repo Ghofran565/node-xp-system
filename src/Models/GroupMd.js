@@ -16,7 +16,7 @@ const groupSchema = new mongoose.Schema(
       index: true,
     },
     xpBooster: {
-      type: Float16Array,
+      type: Number,
       required: [true, 'XP booster is required.'],
       min: [1.0, 'XP booster must be at least 1.'],
     },

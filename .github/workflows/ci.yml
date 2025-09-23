@@ -1,0 +1,50 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npx eslint . --ext .js,.mjs
+
+      - name: Run security scan
+        run: npm audit --audit-level=high
+
+      - name: Run Jest tests
+        run: npm test
+        env:
+          DATABASE_URL: mongodb://localhost:27017/db-xp-system
+          REDIS_URL: redis://localhost:6379
+          EMAIL_USER: officialtestemail02@gmail.com
+          EMAIL_PASS: hhut suix xdoy lbzp
+          JWT_SECRET: your_jwt_secret_here
+          NODE_ENV: test
+          MAX_LIMIT_USER: 50
+          MAX_LIMIT_ADMIN: 1000
+          MAX_LIMIT_MOD: 500
+          MAX_LIMIT_OWNER: 10000
+          CACHE_TTL: 600
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/

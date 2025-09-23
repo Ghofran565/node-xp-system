@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import catchAsync from '../Utils/catchAsync.js';
 import HandleError from '../Utils/handleError.js';
-import Tournament from '../Models/Tournament.js';
-import Player from '../Models/Player.js';
-import Task from '../Models/Task.js';
-import AuditLog from '../Models/AuditLog.js';
+import Tournament from '../Models/TournamentMd.js';
+import Player from '../Models/PlayerMd.js';
+import Task from '../Models/taskMd.js';
+import AuditLog from '../Models/AuditLogMd.js';
 import { cache } from '../Utils/cache.js';
 import { sendEmailCode } from '../Utils/notifier.js';
 import { logger } from '../Utils/logger.js';

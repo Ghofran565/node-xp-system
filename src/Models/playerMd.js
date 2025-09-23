@@ -43,7 +43,7 @@ const playerSchema = new mongoose.Schema(
     rank: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Rank',
-      default: null, // Replaced 'nemidonam' with null as a valid default
+      default: null,
       index: true,
     },
     totalXp: {
@@ -75,6 +75,7 @@ playerSchema.index({ role: 1 });
 playerSchema.index({ rank: 1 });
 playerSchema.index({ groups: 1 });
 
-const Player = mongoose.model('Player', playerSchema);
+// Check if the model exists before defining it
+const Player = mongoose.models.Player || mongoose.model('Player', playerSchema);
 
 export default Player;

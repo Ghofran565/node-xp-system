@@ -6,7 +6,11 @@
 import winston from 'winston';
 import 'winston-mongodb';
 import dotenv from 'dotenv';
-import { __dirname } from '../app.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: `${__dirname}/config.env`, silent: true });
 
@@ -63,6 +67,7 @@ const transports = [
 ];
 
 // Add MongoDB transport only if DATABASE_URL is set
+console.log(process.env.DATABASE_URL)
 if (process.env.DATABASE_URL) {
   transports.push(
     new winston.transports.MongoDB({
@@ -192,14 +197,3 @@ export const log = (...args) => createLogger(...args);
 
 // Export Winston logger for direct use
 export { logger };
-
-// Example usage:
-/*
-logger.info('Direct Winston log');
-log('Redis connected').info().red(); // [INFO] in cyan, "Redis connected" in red
-log('Error occurred').error().bgRed(); // [ERROR] in red, "Error occurred" in red background
-log('Server is running on port 3000 :]').info().green(); // [INFO] in cyan, message in green
-log('Processing...').addTimestamp().debug().green(); // [DEBUG] in green, message in green
-log('Custom').setPrefix('API').blue(); // [API] in blue, message in blue
-log('Operation').startTimer().warn().yellow(); // [WARN] in yellow, message in yellow
-*/

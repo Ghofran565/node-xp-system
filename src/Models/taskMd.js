@@ -78,6 +78,7 @@ taskSchema.index({ category: 1 });
 taskSchema.index({ startTime: 1 });
 taskSchema.index({ endTime: 1 });
 
-const Task = mongoose.model('Task', taskSchema);
+// Check if the model exists before defining it
+const Task = mongoose.models.Task || mongoose.model('Task', taskSchema);
 
 export default Task;

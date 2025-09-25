@@ -1,38 +1,50 @@
 import request from 'supertest';
 import express from 'express';
-import { healthRouter } from '../Routes/health.js';
 import mongoose from 'mongoose';
-import { createClient } from 'redis';
+import healthRouter from '../Routes/health.js';
+import { redis, helmetMiddleware } from './setup.mjs';
 
 const app = express();
+app.use(helmetMiddleware);
 app.use(express.json());
 app.use('/api/health', healthRouter);
 
-describe('Health Endpoint', () => {
-  it('should return system status', async () => {
-    const redis = createClient();
-    redis.connect.mockResolvedValue(true);
+describe('Health Endpoints', () => {
+  describe('GET /api/health', () => {
+    it('should return 200 with healthy status for all services', async () => {
+      const res = await request(app)
+        .get('/api/health')
+        .expect('X-Content-Type-Options', 'nosniff')
+        .expect('Content-Security-Policy', expect.any(String));
 
-    mongoose.connection.db = { collections: jest.fn().mockResolvedValue([]) };
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('status', 'healthy');
+      expect(res.body).toHaveProperty('database', 'connected');
+      expect(res.body).toHaveProperty('cache', 'connected');
+    });
 
-    const res = await request(app).get('/api/health');
+    it('should return 503 if database is disconnected', async () => {
+      await mongoose.disconnect();
 
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('status', 'healthy');
-    expect(res.body).toHaveProperty('database', 'connected');
-    expect(res.body).toHaveProperty('cache', 'connected');
-  });
+      const res = await request(app)
+        .get('/api/health')
+        .expect('X-Content-Type-Options', 'nosniff');
 
-  it('should return 503 if Redis connection fails', async () => {
-    const redis = createClient();
-    redis.connect.mockRejectedValue(new Error('Redis connection failed'));
+      expect(res.status).toBe(503);
+      expect(res.body).toHaveProperty('status', 'unhealthy');
+      expect(res.body).toHaveProperty('database', 'disconnected');
+    });
 
-    mongoose.connection.db = { collections: jest.fn().mockResolvedValue([]) };
+    it('should return 503 if redis is disconnected', async () => {
+      await redis.quit();
 
-    const res = await request(app).get('/api/health');
+      const res = await request(app)
+        .get('/api/health')
+        .expect('X-Content-Type-Options', 'nosniff');
 
-    expect(res.status).toBe(503);
-    expect(res.body).toHaveProperty('status', 'unhealthy');
-    expect(res.body).toHaveProperty('cache', 'disconnected');
+      expect(res.status).toBe(503);
+      expect(res.body).toHaveProperty('status', 'unhealthy');
+      expect(res.body).toHaveProperty('cache', 'disconnected');
+    });
   });
 });

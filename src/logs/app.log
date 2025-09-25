@@ -13,3 +13,7 @@
 2025-09-23T08:45:41.719Z [INFO] Server is running on port 3000 :]
 2025-09-23T08:45:41.792Z [INFO] Redis connected
 2025-09-23T08:45:41.806Z [INFO] Database is connected and ready to use
+2025-09-24T09:26:05.842Z [WARN] MongoDB connection is down
+2025-09-24T09:26:06.879Z [WARN] MongoDB connection is down
+2025-09-24T09:28:46.073Z [WARN] MongoDB connection is down
+2025-09-24T09:28:47.154Z [WARN] MongoDB connection is down

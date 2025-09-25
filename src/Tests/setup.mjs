@@ -1,81 +1,76 @@
 // Tests/setup.mjs
-import { jest } from '@jest/globals';
 import mongoose from 'mongoose';
-import { createClient } from 'redis';
+import Redis from 'ioredis';
 import { Server } from 'socket.io';
+import http from 'http';
 import nodemailer from 'nodemailer';
 import winston from 'winston';
+import helmet from 'helmet';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { config } from 'dotenv';
 import path from 'path';
 import { validationResult } from 'express-validator';
 import rateLimit from 'express-rate-limit';
+import { PassThrough } from 'stream';
+
+// Configure winston with a null transport
+const logger = winston.createLogger({
+  transports: [new winston.transports.Stream({ stream: new PassThrough() })],
+});
+
+// Configure nodemailer with a test transport
+const transporter = nodemailer.createTransport({
+  streamTransport: true,
+  newline: 'unix',
+  buffer: true,
+});
+
+// Configure Redis with in-memory configuration
+const redis = new Redis({ enableOfflineQueue: false });
+
+// Configure Socket.io with a dummy HTTP server
+const httpServer = http.createServer();
+const io = new Server(httpServer);
+
+// Configure rate-limit with in-memory store
+const rateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Configure helmet
+const helmetMiddleware = helmet();
 
 config({ path: path.resolve(process.cwd(), 'config.env') });
-
-jest.mock('mongoose');
-jest.mock('redis');
-jest.mock('socket.io');
-jest.mock('nodemailer');
-jest.mock('winston');
-jest.mock('express-validator');
-jest.mock('express-rate-limit');
 
 let mongoServer;
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
-  mongoose.connect.mockResolvedValue({
-    connection: { db: { databaseName: 'test-xp-system' } },
-  });
   await mongoose.connect(mongoUri);
-
-  createClient.mockReturnValue({
-    get: jest.fn().mockResolvedValue(null),
-    set: jest.fn().mockResolvedValue('OK'),
-    del: jest.fn().mockResolvedValue(1),
-    connect: jest.fn().mockResolvedValue(true),
-    quit: jest.fn().mockResolvedValue(true),
-  });
-
-  Server.mockImplementation(() => ({
-    emit: jest.fn(),
-    on: jest.fn(),
-    to: jest.fn().mockReturnThis(),
-  }));
-
-  nodemailer.createTransport.mockReturnValue({
-    sendMail: jest.fn().mockResolvedValue({ messageId: 'mocked-email' }),
-  });
-
-  winston.createLogger.mockReturnValue({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-  });
-
-  validationResult.mockImplementation(() => ({
-    isEmpty: jest.fn().mockReturnValue(true),
-    array: jest.fn().mockReturnValue([]),
-  }));
-
-  rateLimit.mockImplementation(() => (req, res, next) => next());
 });
 
 afterAll(async () => {
   await mongoose.disconnect();
+  await redis.quit();
+  httpServer.close();
   await mongoServer.stop();
 });
 
 beforeEach(async () => {
-  jest.clearAllMocks();
   const collections = await mongoose.connection.db.collections();
   for (const collection of collections) {
     await collection.deleteMany({});
   }
+  await redis.flushall();
 });
 
 afterEach(async () => {
-  jest.resetAllMocks();
+  // No mocks to reset
 });
+
+// Export dependencies for use in tests
+export { logger, transporter, redis, io, rateLimiter, validationResult, helmetMiddleware };

@@ -18,6 +18,17 @@ This repository hosts a **XP-based tasks API** built with Node.js, designed to m
 ## Installation
 - Detailed setup instructions are in the [full README](README_full.md) or consult the team for Docker-based deployment.
 
+## Project Highlights
+
+- **Docker-Ready:** Containerized with Docker for consistent deployment across environments.
+- **Redis Caching:** Leverages Redis for high-performance caching of task lists and leaderboards.
+- **Comprehensive Testing:** Includes Jest unit and integration tests for schemas, algorithms, and full flows (e.g., register → verify → complete task).
+- **GitHub CI/CD:** Automated CI/CD pipeline with GitHub Actions for linting, testing, building, and deploying.
+- **Swagger Documentation:** Planned Swagger integration for clear API documentation.
+- **Real-time Updates:** Uses Socket.io for real-time leaderboard and player progress updates.
+- **Security Features:** Implements JWT authentication, rate limiting, input validation, and anti-cheat mechanisms.
+- **Monitoring & Logging:** Winston logging, Prometheus metrics, and PM2 for process management.
+
 ## API Endpoints Examples
 
 | Method | Endpoint                | Description                        |

@@ -1,10 +1,10 @@
-# Node-xp-system
+# Node.js XP-based tasks system
 
-This repository hosts a **Node-xp-system** built with Node.js, designed to manage player tasks, XP, tournaments, and game-specific leaderboards with enhanced security and DevOps features.
+This repository hosts a **XP-based tasks API** built with Node.js, designed to manage player tasks, XP, tournaments, and a leaderboard with enhanced security and DevOps features.
 
-## Postman's Workspace Link
-- The project is still in **Planning** phase, stay tunned
-- Whenever the public workspace is ready, we will put the link here even if it is not completed.
+# Postman's workspace link
+- Soon we will put the link for you because this project is in **testing** state
+- Whenever the public workspace is ready, we will put the link here even if it is not fully ready
 
 ## Project Structure
 
@@ -27,26 +27,28 @@ This repository hosts a **Node-xp-system** built with Node.js, designed to manag
 | GET    | `/api/leaderboards`     | Fetch XP or tournament rankings   |
 | GET    | `/api/tournament`       | Get active tournaments            |
 
-(Refer to the `Routes` directory for full details.)
+(Refer to the respective route files in the `Routes` directory for full details.)
 
 ## Development Phase
 
-**Phase**: **Planning and Development**
+**Phase**: **Development & Testing**
 
 **Current Focus**:
-- Implementing authentication, task management, and tournament features.
-- Enhancing security with rate limiting and anti-cheat.
-- Preparing for DevOps deployment with CI/CD and monitoring.
+- Wroking on Unit testing and Manual testing
+- Working on DevOps deployment with CI/CD and monitoring.
+- Enhancing security with rate limiting.
 
 ## Common Issues
-- **Missing Environment Variables**: Ensure `.env` is configured in `src` with `PORT`, `MONGO_URI`, `JWT_SECRET`, etc.
-- **Docker Build Failures**: Verify `package.json` is in `src` and Dockerfile paths are correct.
+
+- **Missing Environment Variables**: Ensure all required variables are defined in the `.env` file to prevent runtime errors.
 
 ## Contributing
-Contributions are welcome! Please follow these steps:
+
+Contributions **are welcome!** Please follow these steps:
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix.
 3. Submit a pull request with a detailed description of your changes.
 
 ## License
+
 This project is licensed under the [MIT License](LICENSE).

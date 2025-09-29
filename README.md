@@ -45,7 +45,7 @@ This repository hosts a **XP-based tasks API** built with Node.js, designed to m
 **Phase**: **Development & Testing**
 
 **Current Focus**:
-- Wroking on Unit testing and Manual testing
+- Working on Unit testing and Manual testing
 - Working on DevOps deployment with CI/CD and monitoring.
 - Enhancing security with rate limiting.
 

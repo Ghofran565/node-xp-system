@@ -1,5 +1,8 @@
 # Task, XP, and Leaderboard System Roadmap for Real-time Leaderboard Backend
 
+# Important to know
+- this file may not be exactly like how the project is coded, we had some changes on this project that we have not include them in this file yet
+
 ## Directories
 - **Controllers/**: Business logic for all features.
   - `authController.js`: Registration, email verification, login, password reset.
@@ -10,18 +13,17 @@
 - **Middlewares/**: Authentication, validation, restrictions.
   - `auth.js`: Verify JWT, attach playerId, role, rank, groups, verified.
   - `role.js`: Restrict endpoints by role (user, admin, moderator).
-  - `validation.js`: Sanitize inputs (taskId, groups, tournamentGroups).
   - `verified.js`: Block actions for unverified users (verified=false).
 - **Models/**: MongoDB schemas.
-  - `Task.js`: Tasks with time restrictions, tournament links.
-  - `Player.js`: Player data with verification status.
-  - `PlayerTaskProgress.js`: Task completion tracking.
-  - `Rank.js`: Rank definitions with boosters.
-  - `Group.js`: Group definitions with boosters.
-  - `Tournament.js`: Tournament details with restricted access.
-  - `PasswordResetToken.js`: Password reset tokens.
-  - `VerificationToken.js`: Email verification tokens.
-  - `AuditLog.js`: Action logging.
+  - `TaskMd.js`: Tasks with time restrictions, tournament links.
+  - `PlayerMd.js`: Player data with verification status.
+  - `PlayerTaskProgressMd.js`: Task completion tracking.
+  - `RankMd.js`: Rank definitions with boosters.
+  - `GroupMd.js`: Group definitions with boosters.
+  - `TournamentMd.js`: Tournament details with restricted access.
+  - `PasswordResetTokenMd.js`: Password reset tokens.
+  - `VerificationTokenMd.js`: Email verification tokens.
+  - `AuditLogMd.js`: Action logging.
 - **Routes/**: RESTful API endpoints.
   - `auth.js`: Authentication and verification routes.
   - `tasks.js`: Task management and completion.
@@ -34,7 +36,7 @@
   - `logger.js`: Winston logging to file/Mongo.
   - `seed.js`: Seed database with sample data.
   - `notifier.js`: Email notifications (verification, rank-ups, tournaments).
-  - `cache.js`: Redis caching for tasks, leaderboards.
+  - `apiFeatures.js`: Redis caching for tasks, leaderboards.
 - **Tests/**: Jest unit and integration tests.
   - `auth.test.js`, `task.test.js`, `tournament.test.js`, `player.test.js`, `leaderboard.test.js`.
 

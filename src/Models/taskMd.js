@@ -70,13 +70,13 @@ const taskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-taskSchema.index({ taskId: 1 });
-taskSchema.index({ groups: 1 });
-taskSchema.index({ playersBypass: 1 });
-taskSchema.index({ tournamentId: 1 });
-taskSchema.index({ category: 1 });
-taskSchema.index({ startTime: 1 });
-taskSchema.index({ endTime: 1 });
+// taskSchema.index({ taskId: 1 });
+// taskSchema.index({ groups: 1 });
+// taskSchema.index({ playersBypass: 1 });
+// taskSchema.index({ tournamentId: 1 });
+// taskSchema.index({ category: 1 });
+// taskSchema.index({ startTime: 1 });
+// taskSchema.index({ endTime: 1 });
 
 // Check if the model exists before defining it
 const Task = mongoose.models.Task || mongoose.model('Task', taskSchema);

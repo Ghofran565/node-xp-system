@@ -50,7 +50,7 @@ export const register = catchAsync(async (req, res, next) => {
   await sendEmailCode(email, { playerId: newPlayer._id, purpose: 'verify' });
 
   const token = generateToken(newPlayer);
-  res.status(201).json({ status: 'SUCCESS', totalCount: 1, data: { token, player: { username: newPlayer.username, email: newPlayer.email } } });
+  res.status(201).json({ status: 'SUCCESS', totalCount: 1, data: { token, player: { username: newPlayer.username, email: newPlayer.email, verified: newPlayer.verified } } });
 });
 
 export const verifyEmail = catchAsync(async (req, res, next) => {

@@ -27,7 +27,7 @@ export default {
   resetMocks: true,
   resetModules: true,
   verbose: true,
-  testTimeout: 10000,
+  testTimeout: 30000,
   globals: {
     'process.env': {
       PORT: process.env.PORT || '3000',

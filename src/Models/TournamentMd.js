@@ -49,10 +49,10 @@ const tournamentSchema = new mongoose.Schema(
 );
 
 // Create indexes
-tournamentSchema.index({ tournamentId: 1 });
-tournamentSchema.index({ startTime: 1 });
-tournamentSchema.index({ endTime: 1 });
-tournamentSchema.index({ tournamentGroups: 1 });
+// tournamentSchema.index({ tournamentId: 1 });
+// tournamentSchema.index({ startTime: 1 });
+// tournamentSchema.index({ endTime: 1 });
+// tournamentSchema.index({ tournamentGroups: 1 });
 
 const Tournament = mongoose.model('Tournament', tournamentSchema);
 

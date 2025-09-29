@@ -69,11 +69,11 @@ const playerSchema = new mongoose.Schema(
 );
 
 // Create indexes for efficient querying
-playerSchema.index({ username: 1 }, { unique: true });
-playerSchema.index({ email: 1 }, { unique: true });
-playerSchema.index({ role: 1 });
-playerSchema.index({ rank: 1 });
-playerSchema.index({ groups: 1 });
+// playerSchema.index({ username: 1 }, { unique: true });
+// playerSchema.index({ email: 1 }, { unique: true });
+// playerSchema.index({ role: 1 });
+// playerSchema.index({ rank: 1 });
+// playerSchema.index({ groups: 1 });
 
 // Check if the model exists before defining it
 const Player = mongoose.models.Player || mongoose.model('Player', playerSchema);

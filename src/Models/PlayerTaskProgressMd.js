@@ -28,7 +28,7 @@ const playerTaskProgressSchema = new mongoose.Schema(
 );
 
 // Create composite index for playerId and taskId
-playerTaskProgressSchema.index({ playerId: 1, taskId: 1 }, { unique: true });
+// playerTaskProgressSchema.index({ playerId: 1, taskId: 1 }, { unique: true });
 
 const PlayerTaskProgress = mongoose.model('PlayerTaskProgress', playerTaskProgressSchema);
 

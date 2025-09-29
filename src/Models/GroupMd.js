@@ -25,7 +25,7 @@ const groupSchema = new mongoose.Schema(
 );
 
 // Create index for groupName
-groupSchema.index({ groupName: 1 }, { unique: true });
+// groupSchema.index({ groupName: 1 }, { unique: true });
 
 const Group = mongoose.model('Group', groupSchema);
 

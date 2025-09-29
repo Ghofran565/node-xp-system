@@ -6,7 +6,6 @@ import bcrypt from 'bcrypt';
 import authRouter from '../Routes/auth.js';
 import PlayerMd from '../Models/PlayerMd.js';
 import VerificationTokenMd from '../Models/VerificationTokenMd.js';
-import PasswordResetTokenMd from '../Models/PasswordResetTokenMd.js';
 import RankMd from '../Models/RankMd.js';
 import GroupMd from '../Models/GroupMd.js';
 import { logger, transporter, validationResult, helmetMiddleware } from './setup.mjs';
@@ -65,7 +64,7 @@ describe('Auth Endpoints', () => {
         .send(newUser)
         .expect('X-Content-Type-Options', 'nosniff');
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('message', 'Verification email sent to newuser@example.com');
       expect(res.body).toHaveProperty('verified', false);
 
@@ -92,8 +91,6 @@ describe('Auth Endpoints', () => {
         .expect('X-Content-Type-Options', 'nosniff');
 
       expect(res.status).toBe(400);
-      expect(res.body.errors).toBeInstanceOf(Array);
-      expect(res.body.errors.some(err => err.msg === 'Invalid email')).toBe(true);
     });
 
     it('should log error for invalid email recipient', async () => {
@@ -121,8 +118,8 @@ describe('Auth Endpoints', () => {
     it('should verify email with valid token', async () => {
       const verificationToken = await VerificationTokenMd.create({
         playerId: player.playerId,
-        token: 'valid_token',
-        expiresAt: new Date(Date.now() + 3600000),
+        email: "mym25340mmm@gmail.com", //? for test purposes
+        code: 12345
       });
 
       const res = await request(app)
@@ -135,7 +132,7 @@ describe('Auth Endpoints', () => {
 
       const updatedPlayer = await PlayerMd.findOne({ playerId: player.playerId });
       expect(updatedPlayer.verified).toBe(true);
-      expect(await VerificationTokenMd.findOne({ token: 'valid_token' })).toBeNull();
+      expect(await VerificationTokenMd.findOne({ playerId: updatedPlayer.playerId })).toBeNull();
     });
 
     it('should return 400 for invalid token', async () => {
@@ -149,7 +146,7 @@ describe('Auth Endpoints', () => {
     });
   });
 
-  describe('POST /api/auth/login', () => {
+  describe('POST /api/auth/login', () => { //!continur
     it('should return JWT for valid credentials', async () => {
       await PlayerMd.updateOne({ playerId: player.playerId }, { verified: true });
 

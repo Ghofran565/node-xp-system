@@ -1,10 +1,10 @@
 // Utils/notifier.js
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
-import EmailVerification from '../Models/emailVerificationMd.js';
 import HandleError from './handleError.js';
 import catchAsync from './catchAsync.js';
 import { logger } from './logger.js';
+import VerificationToken from '../Models/VerificationTokenMd.js';
 
 const createTransporter = () => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -44,7 +44,7 @@ const sendMail = async (transporter, mailOptions) => {
 export const sendEmailCode = catchAsync(async (email, options = {}) => {
   const { playerId, purpose, content } = options;
   const generatedCode = generateVerificationCode();
-  await EmailVerification.create({ email, code: generatedCode, expiresAt: new Date(Date.now() + 5 * 60 * 1000) }); // 5-minute expiry
+  await VerificationToken.create({ playerId, email, code: generatedCode  }); // 5-minute expiry
 
   const transporter = createTransporter();
   let subject, text;
@@ -87,10 +87,8 @@ export const sendEmailCode = catchAsync(async (email, options = {}) => {
 });
 
 export const verifyEmailCode = catchAsync(async (email, code, purpose = 'verify') => {
-  const emailVerificationCheck = await EmailVerification.findOneAndDelete({
+  const emailVerificationCheck = await VerificationToken.findAndDelete({
     email,
-    code,
-    expiresAt: { $gt: new Date() },
   }).lean(); // Use findOneAndDelete to remove on success
 
   if (!emailVerificationCheck) {

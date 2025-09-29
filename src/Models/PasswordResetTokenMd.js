@@ -1,31 +1,37 @@
 import mongoose from 'mongoose';
 
-//! CHECK ON THIS ONE 
+//! CHECK ON THIS ONE
 
-const passwordResetTokenSchema = new mongoose.Schema(
-  {
-    playerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Player ID is required.'],
-    },
-    token: {
-      type: String,
-      required: [true, 'Token is required.'],
-      unique: true,
-      index: true,
-    },
-    expiresAt: {
-      type: Date,
-      required: [true, 'Expiration date is required.'],
-    },
-  },
-  { timestamps: true }
+const PasswordResetTokenSchema = new mongoose.Schema(
+	{
+		playerId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User',
+			required: [true, 'Player ID is required.'],
+		},
+		email: {
+			type: String,
+			required: true,
+		},
+		code: {
+			type: String,
+			required: true,
+		},
+		createdAt: {
+			type: Date,
+			default: Date.now,
+			expires: '5min',
+		},
+	},
+	{ timestamps: true }
 );
 
 // Create index for token
-passwordResetTokenSchema.index({ token: 1 }, { unique: true });
+// verificationTokenSchema.index({ token: 1 }, { unique: true });
 
-const PasswordResetToken = mongoose.model('PasswordResetToken', passwordResetTokenSchema);
+const PasswordResetToken = mongoose.model(
+	'PasswordResetToken',
+	PasswordResetTokenSchema
+);
 
 export default PasswordResetToken;

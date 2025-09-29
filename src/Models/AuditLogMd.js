@@ -27,7 +27,7 @@ const auditLogSchema = new mongoose.Schema(
 );
 
 // Create index for timestamp
-auditLogSchema.index({ timestamp: 1 });
+// auditLogSchema.index({ timestamp: 1 });
 
 const AuditLog = mongoose.model('AuditLog', auditLogSchema);
 

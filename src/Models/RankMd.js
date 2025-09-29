@@ -30,7 +30,7 @@ const rankSchema = new mongoose.Schema(
 );
 
 // Create index for rankName
-rankSchema.index({ rankName: 1 }, { unique: true });
+// rankSchema.index({ rankName: 1 }, { unique: true });
 
 const Rank = mongoose.model('Rank', rankSchema);
 

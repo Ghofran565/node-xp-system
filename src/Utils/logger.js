@@ -67,7 +67,7 @@ const transports = [
 ];
 
 // Add MongoDB transport only if DATABASE_URL is set
-console.log(process.env.DATABASE_URL)
+// console.log(process.env.DATABASE_URL)
 if (process.env.DATABASE_URL) {
   transports.push(
     new winston.transports.MongoDB({

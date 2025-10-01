@@ -3,13 +3,13 @@ import mongoose from 'mongoose';
 import { config } from 'dotenv';
 import bcrypt from 'bcrypt';
 import path from 'path';
-import Player from '../Models/Player.js';
-import Rank from '../Models/Rank.js';
-import Group from '../Models/Group.js';
-import Tournament from '../Models/Tournament.js';
-import Task from '../Models/Task.js';
-import PlayerTaskProgress from '../Models/PlayerTaskProgress.js';
-import AuditLog from '../Models/AuditLog.js';
+import Player from '../Models/PlayerMd.js';
+import Rank from '../Models/RankMd.js';
+import Group from '../Models/GroupMd.js';
+import Tournament from '../Models/TournamentMd.js';
+import Task from '../Models/TaskMd.js';
+import PlayerTaskProgress from '../Models/PlayerTaskProgressMd.js';
+import AuditLog from '../Models/AuditLogMd.js';
 
 config({ path: path.resolve(process.cwd(), 'config.env') });
 
